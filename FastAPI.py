@@ -10,7 +10,7 @@ from fastapi import FastAPI, Path, Query, HTTPException, status
 from typing import Optional
 from pydantic import BaseModel
 
-# Initialise our api
+# Initialise our app
 app = FastAPI()
 
 # Similar to a struct in C
@@ -25,9 +25,10 @@ class Update_Item(BaseModel):
     brand: Optional[str] = None
 
 
-# endpoint/route - Base server URL. Each endpoint leads you to a different webpage having different context.
+# endpoint/route - Base server URL. Each endpoint is a URL that clients ca send request to and the server will respond with appropriate data. 
+# To create an endpoint, we can use @app.get, @app.post, @app.put and @app.delete.
 @app.get("/")
-# Information returned when you go this endpoint
+# the ndpoint respons to the GET request at this URL "/"
 def home():
     # FastAPI also handles jsonifying all of our info that is being exchanged between you and the api.
     return {"Data" : "Test"}
@@ -78,7 +79,7 @@ def get_item(*, name: Optional[str] = None):
 
 
 # We can't call this endpoint without having the query parameter - name. we get an error!
-# To make a query parameter an optional query param, just set name : str = None(default) or just use name : Optional[str] = None
+# To make a parameter optional, just set name : str = None(default) or just use name : Optional[str] = None
 # * to avoid the python error for putting an non-optional param after an optional param.
 
 
@@ -91,13 +92,17 @@ def get_item(*, item_id: int, name: Optional[str] = None):
     # return {"Data": "Not Found"}
     raise HTTPException(status_code= status.HTTP_404_NOT_FOUND)
 
+# We can use Pydantic which is a library used for validating requested data. 
+# define a pydantic model - BaseModel for our request data and use it as a param to our endpoint function.
 
 # Request Body - To send info to your database/inventory.
 @app.post("/create-item/{item_id}")
 # Putting a class as a parameter tells the FastAPI that this is for the request body and not a query param.
 # item_id is the path param.
+
+# item is an instance of the Item model and is automatically validated by FastAPI 
+# so when you try to create a new item, it will only get created if the datatypes are as defined in the Item class.
 def create_item(item_id: int, item: Item):
-    # take the item and insert it into the inventory.
     if item_id in inventory:
         raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST, detail = "Item ID already exists.")
     
@@ -136,3 +141,6 @@ def delete_item(item_id: int = Query(description= "The ID of the tem to be delet
 # How to return an error status code
 # 1. from FastAPI import HTTPException, status
 # 2. where you want to return some error msg, instead raise exception with a status code.
+
+
+# FastAPI can be integrated with a variety of databases, including PostgreSQL, MySQL, SQLite, and many more.
